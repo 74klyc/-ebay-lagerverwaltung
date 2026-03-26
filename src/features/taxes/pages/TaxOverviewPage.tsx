@@ -66,33 +66,52 @@ export function TaxOverviewPage() {
     queryFn: async () => {
       if (!userId) throw new Error('Not authenticated')
 
-      const { data: salesData } = await supabase
-        .from('v_yearly_tax_report')
+      const startDate = `${year}-01-01T00:00:00Z`
+      const endDate = `${year}-12-31T23:59:59Z`
+
+      const { data: salesData, error: salesError } = await supabase
+        .from('sales')
         .select('*')
         .eq('user_id', userId)
-        .eq('year', parseInt(year))
-        .single()
+        .gte('sold_at', startDate)
+        .lte('sold_at', endDate)
+        .not('status', 'in', '(returned,refunded)')
 
-      const { data: expensesData } = await supabase
-        .from('v_yearly_expenses')
-        .select('total_amount')
+      if (salesError && salesError.code !== 'PGRST116') throw salesError
+
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*')
         .eq('user_id', userId)
-        .eq('year', parseInt(year))
+        .gte('date', `${year}-01-01`)
+        .lte('date', `${year}-12-31`)
         .eq('is_tax_deductible', true)
 
-      const expenses = expensesData?.reduce((sum, e) => sum + e.total_amount, 0) || 0
+      if (expensesError && expensesError.code !== 'PGRST116') throw expensesError
+
+      const sales = salesData || []
+      const expensesArr = expensesData || []
+
+      const gross_income = sales.reduce((sum, s) => sum + (s.sale_price || 0) + (s.shipping_income || 0), 0)
+      const cost_of_goods = sales.reduce((sum, s) => sum + (s.purchase_price || 0), 0)
+      const platform_fees = sales.reduce((sum, s) => sum + (s.ebay_fees || 0) + (s.payment_fees || 0), 0)
+      const shipping_expenses = sales.reduce((sum, s) => sum + (s.shipping_cost_actual || 0) + (s.packaging_cost || 0), 0)
+      const sales_other_costs = sales.reduce((sum, s) => sum + (s.other_costs || 0), 0)
+      
+      const other_expenses = expensesArr.reduce((sum, e) => sum + (e.amount || 0), 0) + sales_other_costs
+      const net_income = gross_income - cost_of_goods - platform_fees - shipping_expenses - other_expenses
 
       return {
         year: parseInt(year),
-        total_sales: salesData?.total_sales || 0,
-        gross_income: salesData?.gross_income || 0,
-        cost_of_goods: salesData?.cost_of_goods || 0,
-        platform_fees: salesData?.platform_fees || 0,
-        shipping_expenses: salesData?.shipping_expenses || 0,
-        other_expenses: expenses,
-        net_income: (salesData?.net_income || 0) - expenses,
-        vat_collected_19: salesData?.vat_collected_19 || 0,
-        vat_collected_7: salesData?.vat_collected_7 || 0,
+        total_sales: sales.length,
+        gross_income,
+        cost_of_goods,
+        platform_fees,
+        shipping_expenses,
+        other_expenses,
+        net_income,
+        vat_collected_19: 0,
+        vat_collected_7: 0,
       }
     },
     enabled: !!userId,

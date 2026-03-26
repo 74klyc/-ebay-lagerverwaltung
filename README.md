@@ -6,7 +6,9 @@ Eine Web-App zur Verwaltung Ihres eBay-Lagers mit Verkaufs-Analytics.
 
 - **Lagerverwaltung**: Artikel anlegen, kategorisieren, Lagerorte zuweisen
 - **Dashboard**: KPIs, Charts, Umsatz-Trends
+- **Finanzen & EÜR**: Vollständige Berechnung und PDF/CSV-Export der Einnahme-Überschuss-Rechnung
 - **Authentifizierung**: Sichere Anmeldung mit E-Mail/Passwort
+- **Industrial Theme**: Spezielles Dark-Mode-Design (brushed-metal) mit Fokus auf Produktivität und Mobile-First-Responsiveness
 
 ## Tech Stack
 

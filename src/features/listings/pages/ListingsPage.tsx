@@ -304,21 +304,21 @@ export function ListingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Listings</h1>
           <p className="text-muted-foreground">
             Verwalten Sie Ihre eBay-Listings
           </p>
         </div>
-        <Button onClick={openCreateDialog}>
+        <Button onClick={openCreateDialog} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Neues Listing
         </Button>
       </div>
 
       <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList>
+        <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
           <TabsTrigger value="all">
             Alle ({statusCounts.all})
           </TabsTrigger>
@@ -348,7 +348,7 @@ export function ListingsPage() {
               />
             </div>
             <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Plattform" />
               </SelectTrigger>
               <SelectContent>
